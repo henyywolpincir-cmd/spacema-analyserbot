@@ -1,0 +1,47 @@
+import streamlit as st
+import pandas as pd
+import time
+
+# Pengaturan Judul Aplikasi
+st.set_page_config(page_title="Spaceman Analyzer Pro", page_icon="🚀")
+
+st.title("🚀 Spaceman Trend Analyzer")
+st.write("Masukkan riwayat multiplier terakhir untuk melihat analisis risiko.")
+
+# Input Data dari User
+input_data = st.text_input("Masukkan riwayat angka (pisahkan dengan koma):", "1.20, 2.50, 1.05, 5.00, 1.10")
+
+if st.button("Analisis Pola"):
+    # Proses Data
+    try:
+        data_list = [float(x.strip()) for x in input_data.split(",")]
+        df = pd.DataFrame(data_list, columns=['multiplier'])
+        
+        # Hitung Statistik
+        rata_rata = df['multiplier'].mean()
+        last_val = data_list[-1]
+        win_rate_2x = (len(df[df['multiplier'] >= 2.0]) / len(df)) * 100
+
+        # Tampilan Metric
+        col1, col2, col3 = st.columns(3)
+        col1.metric("Rata-rata", f"{rata_rata:.2f}x")
+        col2.metric("Terakhir", f"{last_val:.2f}x")
+        col3.metric("Win Rate 2x", f"{win_rate_2x:.1f}%")
+
+        # Grafik Tren
+        st.subheader("Grafik Fluktuasi")
+        st.line_chart(df['multiplier'])
+
+        # Logika Prediksi Sederhana
+        st.subheader("Hasil Analisis Strategi:")
+        if last_val < 1.2 and rata_rata < 2.0:
+            st.error("⚠️ STATUS: COLD (DINGIN). Banyak angka kecil beruntun. Disarankan menunggu.")
+        elif win_rate_2x < 30:
+            st.warning("🟡 STATUS: BERISIKO. Peluang angka di atas 2x sedang rendah.")
+        else:
+            st.success("✅ STATUS: POTENSIAL. Tren menunjukkan pergerakan ke angka menengah.")
+            
+    except ValueError:
+        st.error("Format salah! Masukkan angka saja, contoh: 1.5, 2.0, 3.1")
+
+st.info("Catatan: Aplikasi ini menggunakan hitungan statistik (probabilitas), bukan bocoran server. Gunakan dengan bijak.")
